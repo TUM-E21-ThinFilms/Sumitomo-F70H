@@ -19,6 +19,9 @@ import logging
 from slave.protocol import Protocol
 from slave.transport import Timeout
 
+class CommunicationError(Exception):
+    pass
+
 class SumitomoF70HProtocol(Protocol):
     def __init__(self, terminal="\r", separator=',', encoding='ascii', logger=None):
 
@@ -62,13 +65,21 @@ class SumitomoF70HProtocol(Protocol):
         msg = []
         msg.append(header)
         msg.extend(data)
-        msg.append(self.compute_checksum(map(ord, "".join(msg))))
+        msg.append(hex(self.compute_checksum(map(ord, "".join(msg))))[2:].upper())
         msg.append(self.terminal)
         return ''.join(msg).encode(self.encoding)    
 
     def parse_response(self, response, header):
         # the last entry is crc
-        return response.decode(self.encoding).split(self.separator)[:-1]
+	
+        resp = response.decode(self.encoding).split(self.separator)[0:-1]
+	#TODO: check whether header == resp[0]
+	
+        if resp[0] == '$???':
+            raise CommunicationError('Device did not understand message')
+	
+
+	return resp[1:]
     
     def query(self, transport, header, *data):
         message = self.create_message(header, *data)

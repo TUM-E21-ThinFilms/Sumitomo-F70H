@@ -34,4 +34,4 @@ class SumitomoF70HFactory:
 			logger = self.get_logger()
 
 		protocol = SumitomoF70HProtocol(logger=logger)
-		return SumitomoF70HDriver(Serial(device, 9600, 8, 'N', 1, 0.1), protocol)
+		return SumitomoF70HDriver(Serial(device, 9600, 8, 'N', 1, 1), protocol)

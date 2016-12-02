@@ -49,8 +49,8 @@ class SumitomoF70HDriver(object):
         if not id in [1,2,3,4]:
             raise ValueError("Unknown id")
 
-        cmd = Command(('$TE', String))
-        return self._query(cmd, id)
+        cmd = Command(('$TE' + str(id), String))
+        return self._query(cmd, '')
 
     def get_all_pressures(self):
         cmd = Command(('$PRA', [String, String]))
@@ -60,8 +60,8 @@ class SumitomoF70HDriver(object):
         if not id in [1, 2]:
             raise ValueError("Unknown id")
 
-        cmd = Command(('$PR', String))
-        return self._query(cmd, id)
+        cmd = Command(('$PR' + str(id), String))
+        return self._query(cmd, '')
 
     def turn_on(self):
         cmd = ('$ON1')
