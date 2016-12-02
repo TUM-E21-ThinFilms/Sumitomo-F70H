@@ -29,7 +29,7 @@ class SumitomoF70HFactory:
 		logger.addHandler(fh)
 		return logger
 	
-	def create_lakeshore(self, device='/dev/ttyUSBx', logger=None):
+	def create(self, device='/dev/ttyUSB13', logger=None):
 		if logger is None:
 			logger = self.get_logger()
 
