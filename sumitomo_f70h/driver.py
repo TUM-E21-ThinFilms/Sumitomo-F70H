@@ -70,7 +70,6 @@ class SumitomoF70HDriver(object):
     def turn_off(self):
         cmd = ('$OFF')
         self._write(cmd)
-
     def reset(self):
         self._write(('$RS1'))
 

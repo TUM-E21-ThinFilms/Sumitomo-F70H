@@ -13,10 +13,11 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+import logging
+
 from protocol import SumitomoF70HProtocol
 from driver import SumitomoF70HDriver
-from slave.transport import Serial
-import logging
+from e21_util.transport import Serial
 
 class SumitomoF70HFactory:
 	def get_logger(self):

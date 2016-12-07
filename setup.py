@@ -17,7 +17,7 @@ import sys
 
 from setuptools import setup, find_packages
 
-requires = ['slave']
+requires = ['slave', 'e21_util']
 
 desc = ('An implementation of the Sumitomo F-70H RS232 interface')
 

@@ -15,12 +15,13 @@
 
 import slave
 import logging
+import e21_util
 
 from slave.protocol import Protocol
 from slave.transport import Timeout
 
-class CommunicationError(Exception):
-    pass
+from e21_util.lock import InterProcessTransportLock
+from e21_util.error import CommunicationError
 
 class SumitomoF70HProtocol(Protocol):
     def __init__(self, terminal="\r", separator=',', encoding='ascii', logger=None):
@@ -35,11 +36,12 @@ class SumitomoF70HProtocol(Protocol):
         self.encoding = encoding
 
     def clear(self, transport):
-        try:
-            while True:
-                transport.read_bytes(5)
-        except slave.transport.Timeout:
-            return
+        with InterProcessTransportLock(transport):
+            try:
+                while True:
+                    transport.read_bytes(5)
+            except slave.transport.Timeout:
+                return
 
     def set_logger(self, logger):
         self.logger = logger
@@ -73,26 +75,28 @@ class SumitomoF70HProtocol(Protocol):
         # the last entry is crc
 	
         resp = response.decode(self.encoding).split(self.separator)[0:-1]
-	#TODO: check whether header == resp[0]
+        #TODO: check whether header == resp[0]
 	
         if resp[0] == '$???':
             raise CommunicationError('Device did not understand message')
 	
 
-	return resp[1:]
+        return resp[1:]
     
-    def query(self, transport, header, *data):
-        message = self.create_message(header, *data)
-        self.logger.debug('Query: %s', repr(message))
-        with transport:
-            transport.write(message)
-            response = transport.read_until(self.terminal.encode(self.encoding))
-        self.logger.debug('Response: %s', repr(response))
-        return self.parse_response(response,header)
+    def query(self, transport, header, *data):#
+        with InterProcessTransportLock(transport):
+            message = self.create_message(header, *data)
+            self.logger.debug('Query: %s', repr(message))
+            with transport:
+                transport.write(message)
+                response = transport.read_until(self.terminal.encode(self.encoding))
+            self.logger.debug('Response: %s', repr(response))
+            return self.parse_response(response,header)
 
     def write(self, transport, header, *data):
-        message = self.create_message(header, *data)
-        self.logger.debug('Write: %s', repr(message))
-        with transport:
-            transport.write(message)
+        with InterProcessTransportLock(transport):
+            message = self.create_message(header, *data)
+            self.logger.debug('Write: %s', repr(message))
+            with transport:
+                transport.write(message)
         
