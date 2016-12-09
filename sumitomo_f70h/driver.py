@@ -83,4 +83,9 @@ class SumitomoF70HDriver(object):
         self._write(('$POF'))
 
     def get_status(self):
-        return self._query(Command(('$STA', String)))
+        return int(self._query(Command(('$STA', String))), 16)
+
+    def get_on(self):
+        status = self.get_status()
+        # local on and system on.
+        return status & 0x1 and (status >> 9) & 0x1
