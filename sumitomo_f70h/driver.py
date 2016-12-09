@@ -43,14 +43,14 @@ class SumitomoF70HDriver(object):
 
     def get_all_temperatures(self):
         cmd = Command(('$TEA',  [String, String, String, String]))
-        return self._query(cmd, '')
+        return map(float, self._query(cmd, ''))
 
     def get_temperature(self, id):
         if not id in [1,2,3,4]:
             raise ValueError("Unknown id")
 
         cmd = Command(('$TE' + str(id), String))
-        return self._query(cmd, '')
+        return float(self._query(cmd, ''))
 
     def get_all_pressures(self):
         cmd = Command(('$PRA', [String, String]))
