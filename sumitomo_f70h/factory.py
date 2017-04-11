@@ -13,22 +13,14 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-import logging
-
 from protocol import SumitomoF70HProtocol
 from driver import SumitomoF70HDriver
 from e21_util.transport import Serial
+from e21_util.logging import get_sputter_logger
 
 class SumitomoF70HFactory:
 	def get_logger(self):
-		logger = logging.getLogger('Sumitomo F-70H')
-		logger.setLevel(logging.DEBUG)
-		formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-		fh = logging.FileHandler('sumitomo.log')
-		fh.setLevel(logging.DEBUG)
-		fh.setFormatter(formatter)
-		logger.addHandler(fh)
-		return logger
+		return get_sputter_logger('Sumitomo F-70H', 'sumitomo.log')
 	
 	def create(self, device='/dev/ttyUSB13', logger=None):
 		if logger is None:
