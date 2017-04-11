@@ -16,7 +16,7 @@
 from protocol import SumitomoF70HProtocol
 from driver import SumitomoF70HDriver
 from e21_util.transport import Serial
-from e21_util.logging import get_sputter_logger
+from e21_util.log import get_sputter_logger
 
 class SumitomoF70HFactory:
 	def get_logger(self):
