@@ -13,79 +13,75 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-from slave.driver import Command
-from slave.types import Float, String, Integer, Boolean, SingleType
-from protocol import SumitomoF70HProtocol
+from sumitomo_f70h.protocol import SumitomoF70HProtocol
+from sumitomo_f70h.message import AsciiMessage, AsciiCommand, AsciiResponse
 
 class SumitomoF70HDriver(object):
 
-    def __init__(self, transport, protocol=None):
-        if protocol is None:
-            protocol = SumitomoF70HProtocol()
+    def __init__(self, protocol=None):
+        assert isinstance(protocol, SumitomoF70HProtocol)
 
-        self._transport = transport
         self._protocol = protocol
 
-    def _query(self, cmd, *data):
-        if not isinstance(cmd, Command):
-            raise TypeError("Can only query on Command")
-
-        return cmd.query(self._transport, self._protocol, *data)
-
-    def _write(self, cmd, *datas):
-        if not isinstance(cmd, Command):
-            cmd = Command(write=cmd)
-
-        cmd.write(self._transport, self._protocol, *datas)
+    def _execute(self, cmd):
+        return self._protocol.execute(AsciiMessage(cmd))
 
     def clear(self):
-        self._protocol.clear(self._transport)
+        self._protocol.clear()
 
     def get_all_temperatures(self):
-        cmd = Command(('$TEA',  [String, String, String, String]))
-        return map(float, self._query(cmd, ''))
+        response = self._execute(AsciiCommand('TEA'))
+        return map(float, response.get_data())
 
     def get_temperature(self, id):
-        if not id in [1,2,3,4]:
+        if not id in range(1, 5):
             raise ValueError("Unknown id")
 
-        cmd = Command(('$TE' + str(id), String))
-        return float(self._query(cmd, ''))
+        response = self._execute(AsciiCommand('TE' + str(id)))
+        return float(response.get_data())
 
     def get_all_pressures(self):
-        cmd = Command(('$PRA', [String, String]))
-        return self._query(cmd, '')
+        response = self._execute(AsciiCommand('PRA'))
+        return map(float, response.get_data())
 
     def get_pressure(self, id):
-        if not id in [1, 2]:
+        if not id in range(1, 3):
             raise ValueError("Unknown id")
 
-        cmd = Command(('$PR' + str(id), String))
-        return self._query(cmd, '')
+        response = self._execute(AsciiCommand('PR' + str(id)))
+        return float(response.get_data())
 
     def turn_on(self):
-        cmd = ('$ON1')
-        self._write(cmd)
+        self._execute(AsciiCommand('ON1'))
 
     def turn_off(self):
-        cmd = ('$OFF')
-        self._write(cmd)
+        self._execute(AsciiCommand('OFF'))
+
     def reset(self):
-        self._write(('$RS1'))
+        self._execute(AsciiCommand('RS1'))
 
     def cold_head_run(self):
-        self._write(('$CHR'))
+        self._execute(AsciiCommand('CHR'))
 
     def cold_head_pause(self):
-        self._write(('$CHP'))
+        self._execute(AsciiCommand('CHP'))
 
     def cold_head_pause_off(self):
-        self._write(('$POF'))
+        self._execute(AsciiCommand('POF'))
 
     def get_status(self):
-        return int(self._query(Command(('$STA', String))), 16)
+        response = self._execute(AsciiCommand('STA'))
+        return int(response.get_data(), 16)
 
     def get_on(self):
         status = self.get_status()
         # local on and system on.
         return status & 0x1 and (status >> 9) & 0x1
+
+    def get_identifier(self):
+        response = self._execute(AsciiCommand('ID1'))
+        return str(response[0])
+
+    def get_operating_hours(self):
+        response = self._execute(AsciiCommand('ID1'))
+        return float(response[1])

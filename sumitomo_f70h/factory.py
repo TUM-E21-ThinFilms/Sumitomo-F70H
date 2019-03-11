@@ -13,14 +13,23 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-from protocol import SumitomoF70HProtocol
-from driver import SumitomoF70HDriver
+from sumitomo_f70h.protocol import SumitomoF70HProtocol
+
+from sumitomo_f70h.driver import SumitomoF70HDriver
+
 from e21_util.transport import Serial
 from e21_util.log import get_sputter_logger
 from e21_util.ports import Ports
 
-class SumitomoF70HFactory:
+class SumitomoF70HFactory(object):
+
+	@staticmethod
+	def create(transport, logger):
+		return SumitomoF70HDriver(SumitomoF70HProtocol(transport, logger))
+
+
 	def get_logger(self):
+
 		return get_sputter_logger('Sumitomo F-70H', 'sumitomo.log')
 	
 	def create(self, device=None, logger=None):

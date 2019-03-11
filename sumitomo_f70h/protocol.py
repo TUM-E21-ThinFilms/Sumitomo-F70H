@@ -13,90 +13,46 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-import slave
-import logging
-import e21_util
-
-from slave.protocol import Protocol
-from slave.transport import Timeout
-
-from e21_util.lock import InterProcessTransportLock
 from e21_util.error import CommunicationError
+from e21_util.interface import Loggable
+from e21_util.serial_connection import AbstractTransport, SerialTimeoutException
 
-class SumitomoF70HProtocol(Protocol):
-    def __init__(self, terminal="\r", separator=',', encoding='ascii', logger=None):
+from sumitomo_f70h.message import AsciiMessage, AsciiResponse
 
-        if logger is None:
-            logger = logging.getLogger(__name__)
-            logger.addHandler(logging.NullHandler())
+class SumitomoF70HProtocol(Loggable):
+    def __init__(self, transport, logger):
+        super(SumitomoF70HProtocol, self).__init__(logger)
+        assert isinstance(transport, AbstractTransport)
 
-        self.terminal = terminal
-        self.separator = separator
-        self.logger = logger
-        self.encoding = encoding
+        self._transport = transport
 
     def clear(self, transport):
-        with InterProcessTransportLock(transport):
+        with self._transport:
             try:
                 while True:
                     transport.read_bytes(5)
-            except slave.transport.Timeout:
+            except SerialTimeoutException:
                 return
 
-    def set_logger(self, logger):
-        self.logger = logger
+    def _send(self, message):
+        raw = message.get_raw()
+        self._logger.debug("Sending message '{}'".format(repr(raw)))
+        self._transport.write(raw)
 
-    def compute_checksum(self, data):
-        crcmask = 0xA001
-        i = 0
-        l = 0
-        crc = 0xFFFF
-        while l < len(data):
-            crc = (0x0000 | (data[l] & 0xFF)) ^ crc
-            while (i < 8):
-                lsb = crc & 0x1
-                crc = crc >> 1
-                if lsb == 1:
-                    crc = crc ^ crcmask
-                i = i + 1
-            i = 0
-            l = l + 1
-        return crc
+    def _read_response(self):
+        raw_response = self._transport.read_until(ord(AsciiMessage.END))
+        self._logger("Received message '{}'".format(repr(raw_response)))
+        response = AsciiResponse.from_raw(raw_response)
 
-    def create_message(self, header, *data):
-        msg = []
-        msg.append(header)
-        msg.extend(data)
-        msg.append(hex(self.compute_checksum(map(ord, "".join(msg))))[2:].upper())
-        msg.append(self.terminal)
-        return ''.join(msg).encode(self.encoding)    
+        if response.get_cmd() == '???':
+            raise CommunicationError("Unknown message send to device. Device did not understand.")
 
-    def parse_response(self, response, header):
-        # the last entry is crc
-	
-        resp = response.decode(self.encoding).split(self.separator)[0:-1]
-        #TODO: check whether header == resp[0]
-	
-        if resp[0] == '$???':
-            raise CommunicationError('Device did not understand message')
-	
+        return response
 
-        return resp[1:]
-    
-    def query(self, transport, header, *data):#
-        with InterProcessTransportLock(transport):
-            message = self.create_message(header, *data)
-            self.logger.debug('Query: %s', repr(message))
-            with transport:
-                transport.write(message)
-                response = transport.read_until(self.terminal.encode(self.encoding))
-            self.logger.debug('Response: %s', repr(response))
-            return self.parse_response(response,header)
+    def execute(self, message):
+        assert isinstance(message, AsciiMessage)
+        with self._transport:
+            self._send(message)
+            return self._read_response()
 
-    def write(self, transport, header, *data):
-        with InterProcessTransportLock(transport):
-            message = self.create_message(header, *data)
-            self.logger.debug('Write: %s', repr(message))
-            with transport:
-                transport.write(message)
-        
+
