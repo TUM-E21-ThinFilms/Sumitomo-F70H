@@ -80,8 +80,8 @@ class SumitomoF70HDriver(object):
 
     def get_identifier(self):
         response = self._execute(AsciiCommand('ID1'))
-        return str(response[0])
+        return str(response.get_data()[0])
 
     def get_operating_hours(self):
         response = self._execute(AsciiCommand('ID1'))
-        return float(response[1])
+        return float(response.get_data()[1])

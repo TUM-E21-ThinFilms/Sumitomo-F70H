@@ -96,10 +96,10 @@ class AsciiResponse(AbstractMessage):
 
         # Do not need: start, end: intermediate delimiter (command -> data_region, data_region -> end)
         # start = ascii[0]
-        command = str(ascii[1:4])
+        command = "".join(ascii[1:4])
         # raw[4] and raw[-3] are just delimiter
-        data_region = str(ascii[5:-4])
+        data_region = "".join(ascii[5:-4])
         # end = ascii[-1]
-        checksum = str(ascii[-3:-1])
+        checksum = "".join(ascii[-3:-1])
 
         return cls(command, data_region, checksum)
