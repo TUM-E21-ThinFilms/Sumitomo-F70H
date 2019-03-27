@@ -68,9 +68,11 @@ class AsciiCommand(AbstractMessage):
 
 class AsciiResponse(AbstractMessage):
 
-    def __init__(self, command, data_region):
+    def __init__(self, command, data_region, checksum):
         self._cmd = command
         self._data = data_region
+
+        # TODO: check checksum ;)
         self._checksum = checksum
 
     def get_data(self):
@@ -90,7 +92,7 @@ class AsciiResponse(AbstractMessage):
     @classmethod
     def from_raw(cls, raw):
         # convert the bytearray to a "string" array ;)
-        ascii = list(map(chr, raw_response))
+        ascii = list(map(chr, raw))
 
         # Do not need: start, end: intermediate delimiter (command -> data_region, data_region -> end)
         # start = ascii[0]
@@ -100,7 +102,4 @@ class AsciiResponse(AbstractMessage):
         # end = ascii[-1]
         checksum = ascii[-3:-1]
 
-        # TODO
-        # check checksum
-
-        return cls(command, data_region)
+        return cls(command, data_region, checksum)
