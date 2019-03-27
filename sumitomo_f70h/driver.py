@@ -71,7 +71,6 @@ class SumitomoF70HDriver(object):
 
     def get_status(self):
         response = self._execute(AsciiCommand('STA'))
-        print(response.get_data())
         return int(response.get_data(), 16)
 
     def get_on(self):
