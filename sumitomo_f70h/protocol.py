@@ -41,7 +41,7 @@ class SumitomoF70HProtocol(Loggable):
 
     def _read_response(self):
         raw_response = self._transport.read_until(AsciiMessage.END)
-        self._logger("Received message '{}'".format(repr(raw_response)))
+        self._logger.debug("Received message '{}'".format(repr(raw_response)))
         response = AsciiResponse.from_raw(raw_response)
 
         if response.get_cmd() == '???':
