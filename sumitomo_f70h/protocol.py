@@ -26,11 +26,11 @@ class SumitomoF70HProtocol(Loggable):
 
         self._transport = transport
 
-    def clear(self, transport):
+    def clear(self):
         with self._transport:
             try:
                 while True:
-                    transport.read_bytes(5)
+                    self._transport.read_bytes(5)
             except SerialTimeoutException:
                 return
 
