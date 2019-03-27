@@ -40,7 +40,7 @@ class SumitomoF70HProtocol(Loggable):
         self._transport.write(raw)
 
     def _read_response(self):
-        raw_response = self._transport.read_until(ord(AsciiMessage.END))
+        raw_response = self._transport.read_until(AsciiMessage.END)
         self._logger("Received message '{}'".format(repr(raw_response)))
         response = AsciiResponse.from_raw(raw_response)
 

@@ -49,11 +49,11 @@ class AsciiMessage(AbstractMessage):
         checksum = self.compute_checksum(raw)
         # Interpret the checksum as hex, but strip the first two chars (0x1234 -> 1234)
         ascii_checksum = hex(checksum)[2:]
-        return (ascii_msg + checksum + self.END).encode('ascii')
+        return (ascii_msg + ascii_checksum + self.END).encode('ascii')
 
 
 class AsciiCommand(AbstractMessage):
-    def __init__(self, command, data=None):
+    def __init__(self, command, data=''):
         assert len(command) == 3
 
         self._cmd = command
