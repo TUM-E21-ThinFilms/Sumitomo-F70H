@@ -18,7 +18,7 @@ from sumitomo_f70h.message import AsciiMessage, AsciiCommand, AsciiResponse
 
 class SumitomoF70HDriver(object):
 
-    def __init__(self, protocol=None):
+    def __init__(self, protocol):
         assert isinstance(protocol, SumitomoF70HProtocol)
 
         self._protocol = protocol
