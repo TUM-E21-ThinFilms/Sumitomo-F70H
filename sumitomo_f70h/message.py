@@ -49,7 +49,7 @@ class AsciiMessage(AbstractMessage):
         checksum = self.compute_checksum(raw)
         # Interpret the checksum as hex, but strip the first two chars (0x1234 -> 1234)
         ascii_checksum = hex(checksum)[2:]
-        return (ascii_msg + ascii_checksum + self.END).encode('ascii')
+        return (ascii_msg + ascii_checksum + self.END).encode('ascii').upper()
 
 
 class AsciiCommand(AbstractMessage):
@@ -98,8 +98,8 @@ class AsciiResponse(AbstractMessage):
         # start = ascii[0]
         command = "".join(ascii[1:4])
         # raw[4] and raw[-3] are just delimiter
-        data_region = "".join(ascii[5:-4])
+        data_region = "".join(ascii[5:-6])
         # end = ascii[-1]
-        checksum = "".join(ascii[-3:-1])
+        checksum = "".join(ascii[-5:-1])
 
         return cls(command, data_region, checksum)
